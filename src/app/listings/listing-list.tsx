@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import FilterControls from "@/app/components/filter-controls";
+import FilterControls, { Field, controlClass } from "@/app/components/filter-controls";
+import { LEASE_TERMS } from "@/lib/validation";
 
 export type Listing = {
   id: string;
@@ -34,9 +35,16 @@ export default function ListingList({
 }) {
   const [search, setSearch] = useState("");
   const [neighborhood, setNeighborhood] = useState("");
+  const [maxRent, setMaxRent] = useState("");
+  const [minBedrooms, setMinBedrooms] = useState("");
+  const [minBathrooms, setMinBathrooms] = useState("");
+  const [leaseTerm, setLeaseTerm] = useState("");
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const maxR = maxRent === "" ? null : Number(maxRent);
+    const minBd = minBedrooms === "" ? null : Number(minBedrooms);
+    const minBa = minBathrooms === "" ? null : Number(minBathrooms);
     return rows.filter((row) => {
       const matchesText =
         !q ||
@@ -44,9 +52,23 @@ export default function ListingList({
         row.building_name.toLowerCase().includes(q);
       const matchesNeighborhood =
         !neighborhood || row.neighborhood === neighborhood;
-      return matchesText && matchesNeighborhood;
+      const matchesRent =
+        maxR === null || Number.isNaN(maxR) || row.rent <= maxR;
+      const matchesBedrooms =
+        minBd === null || Number.isNaN(minBd) || row.bedrooms >= minBd;
+      const matchesBathrooms =
+        minBa === null || Number.isNaN(minBa) || row.bathrooms >= minBa;
+      const matchesLease = !leaseTerm || row.lease_term === leaseTerm;
+      return (
+        matchesText &&
+        matchesNeighborhood &&
+        matchesRent &&
+        matchesBedrooms &&
+        matchesBathrooms &&
+        matchesLease
+      );
     });
-  }, [rows, search, neighborhood]);
+  }, [rows, search, neighborhood, maxRent, minBedrooms, minBathrooms, leaseTerm]);
 
   if (loadError) {
     return <p className="text-sm text-red-600">{loadError}</p>;
@@ -69,9 +91,67 @@ export default function ListingList({
         onClear={() => {
           setSearch("");
           setNeighborhood("");
+          setMaxRent("");
+          setMinBedrooms("");
+          setMinBathrooms("");
+          setLeaseTerm("");
         }}
         searchPlaceholder="Search by landlord or building…"
-      />
+      >
+        <Field label="Max rent" htmlFor="filter-max-rent">
+          <input
+            id="filter-max-rent"
+            type="number"
+            min={0}
+            inputMode="numeric"
+            value={maxRent}
+            onChange={(e) => setMaxRent(e.target.value)}
+            placeholder="Any"
+            className={`${controlClass} w-full sm:w-32`}
+          />
+        </Field>
+        <Field label="Min beds" htmlFor="filter-min-beds">
+          <input
+            id="filter-min-beds"
+            type="number"
+            min={0}
+            step={1}
+            inputMode="numeric"
+            value={minBedrooms}
+            onChange={(e) => setMinBedrooms(e.target.value)}
+            placeholder="Any"
+            className={`${controlClass} w-full sm:w-28`}
+          />
+        </Field>
+        <Field label="Min baths" htmlFor="filter-min-baths">
+          <input
+            id="filter-min-baths"
+            type="number"
+            min={0}
+            step={0.5}
+            inputMode="decimal"
+            value={minBathrooms}
+            onChange={(e) => setMinBathrooms(e.target.value)}
+            placeholder="Any"
+            className={`${controlClass} w-full sm:w-28`}
+          />
+        </Field>
+        <Field label="Lease term" htmlFor="filter-lease-term">
+          <select
+            id="filter-lease-term"
+            value={leaseTerm}
+            onChange={(e) => setLeaseTerm(e.target.value)}
+            className={`${controlClass} w-full sm:w-36`}
+          >
+            <option value="">Any term</option>
+            {LEASE_TERMS.map((term) => (
+              <option key={term} value={term}>
+                {term}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </FilterControls>
 
       {filtered.length === 0 ? (
         <p className="text-sm text-zinc-600 dark:text-zinc-400">

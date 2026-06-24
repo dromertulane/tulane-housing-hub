@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import FilterControls from "@/app/components/filter-controls";
+import FilterControls, { Field, controlClass } from "@/app/components/filter-controls";
 
 export type Sublet = {
   id: string;
@@ -44,16 +44,23 @@ export default function SubletList({
 }) {
   const [search, setSearch] = useState("");
   const [neighborhood, setNeighborhood] = useState("");
+  const [maxRent, setMaxRent] = useState("");
+  const [availableOn, setAvailableOn] = useState("");
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const max = maxRent === "" ? null : Number(maxRent);
     return rows.filter((row) => {
       const matchesText = !q || row.building_name.toLowerCase().includes(q);
       const matchesNeighborhood =
         !neighborhood || row.neighborhood === neighborhood;
-      return matchesText && matchesNeighborhood;
+      const matchesRent = max === null || Number.isNaN(max) || row.rent <= max;
+      const matchesDate =
+        !availableOn ||
+        (row.available_from <= availableOn && availableOn <= row.available_until);
+      return matchesText && matchesNeighborhood && matchesRent && matchesDate;
     });
-  }, [rows, search, neighborhood]);
+  }, [rows, search, neighborhood, maxRent, availableOn]);
 
   if (loadError) {
     return <p className="text-sm text-red-600">{loadError}</p>;
@@ -76,9 +83,33 @@ export default function SubletList({
         onClear={() => {
           setSearch("");
           setNeighborhood("");
+          setMaxRent("");
+          setAvailableOn("");
         }}
         searchPlaceholder="Search by building…"
-      />
+      >
+        <Field label="Max rent" htmlFor="filter-max-rent">
+          <input
+            id="filter-max-rent"
+            type="number"
+            min={0}
+            inputMode="numeric"
+            value={maxRent}
+            onChange={(e) => setMaxRent(e.target.value)}
+            placeholder="Any"
+            className={`${controlClass} w-full sm:w-32`}
+          />
+        </Field>
+        <Field label="Available on" htmlFor="filter-available-on">
+          <input
+            id="filter-available-on"
+            type="date"
+            value={availableOn}
+            onChange={(e) => setAvailableOn(e.target.value)}
+            className={`${controlClass} w-full sm:w-44`}
+          />
+        </Field>
+      </FilterControls>
 
       {filtered.length === 0 ? (
         <p className="text-sm text-zinc-600 dark:text-zinc-400">

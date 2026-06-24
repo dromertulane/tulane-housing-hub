@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import FilterControls from "@/app/components/filter-controls";
+import FilterControls, { Field, controlClass } from "@/app/components/filter-controls";
 
 export type Review = {
   id: string;
@@ -47,9 +47,11 @@ export default function ReviewList({
 }) {
   const [search, setSearch] = useState("");
   const [neighborhood, setNeighborhood] = useState("");
+  const [minRating, setMinRating] = useState("");
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const min = minRating === "" ? null : Number(minRating);
     return rows.filter((row) => {
       const matchesText =
         !q ||
@@ -57,9 +59,10 @@ export default function ReviewList({
         row.building_name.toLowerCase().includes(q);
       const matchesNeighborhood =
         !neighborhood || row.neighborhood === neighborhood;
-      return matchesText && matchesNeighborhood;
+      const matchesRating = min === null || row.rating >= min;
+      return matchesText && matchesNeighborhood && matchesRating;
     });
-  }, [rows, search, neighborhood]);
+  }, [rows, search, neighborhood, minRating]);
 
   if (loadError) {
     return <p className="text-sm text-red-600">{loadError}</p>;
@@ -82,9 +85,27 @@ export default function ReviewList({
         onClear={() => {
           setSearch("");
           setNeighborhood("");
+          setMinRating("");
         }}
         searchPlaceholder="Search by landlord or building…"
-      />
+      >
+        <Field label="Min rating" htmlFor="filter-min-rating">
+          <select
+            id="filter-min-rating"
+            value={minRating}
+            onChange={(e) => setMinRating(e.target.value)}
+            className={`${controlClass} w-full sm:w-36`}
+          >
+            <option value="">Any rating</option>
+            {[1, 2, 3, 4, 5].map((n) => (
+              <option key={n} value={n}>
+                {n}
+                {n === 5 ? " stars" : "+ stars"}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </FilterControls>
 
       {filtered.length === 0 ? (
         <p className="text-sm text-zinc-600 dark:text-zinc-400">

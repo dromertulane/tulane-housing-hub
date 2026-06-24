@@ -9,6 +9,8 @@ import {
   LONG_MAX,
   RENT_MAX,
   BEDROOMS_MAX,
+  LISTING_FIELDS,
+  collectRaw,
   validateListing,
 } from "@/lib/validation";
 import type { ActionState } from "@/lib/auth/types";
@@ -23,11 +25,15 @@ export default function ListingForm() {
   const [state, formAction, pending] = useActionState(
     async (prev: ActionState, formData: FormData): Promise<ActionState> => {
       const result = validateListing(formData);
-      if ("error" in result) return { error: result.error };
+      if ("error" in result) {
+        return { error: result.error, values: collectRaw(formData, LISTING_FIELDS) };
+      }
       return postListing(prev, formData);
     },
     initialState,
   );
+
+  const v = state.values ?? {};
 
   return (
     <form
@@ -47,6 +53,7 @@ export default function ListingForm() {
             type="text"
             required
             maxLength={SHORT_MAX}
+            defaultValue={v.building_name ?? ""}
             className={fieldClass}
           />
         </div>
@@ -58,7 +65,7 @@ export default function ListingForm() {
             id="neighborhood"
             name="neighborhood"
             required
-            defaultValue=""
+            defaultValue={v.neighborhood ?? ""}
             className={fieldClass}
           >
             <option value="" disabled>
@@ -81,6 +88,7 @@ export default function ListingForm() {
             type="text"
             required
             maxLength={SHORT_MAX}
+            defaultValue={v.landlord_name ?? ""}
             className={fieldClass}
           />
         </div>
@@ -96,6 +104,7 @@ export default function ListingForm() {
             max={RENT_MAX}
             step={1}
             required
+            defaultValue={v.rent ?? ""}
             className={fieldClass}
           />
         </div>
@@ -111,6 +120,7 @@ export default function ListingForm() {
             max={BEDROOMS_MAX}
             step={1}
             required
+            defaultValue={v.bedrooms ?? ""}
             className={fieldClass}
           />
         </div>
@@ -125,6 +135,7 @@ export default function ListingForm() {
             min={1}
             step={0.5}
             required
+            defaultValue={v.bathrooms ?? ""}
             className={fieldClass}
           />
         </div>
@@ -136,7 +147,7 @@ export default function ListingForm() {
             id="lease_term"
             name="lease_term"
             required
-            defaultValue=""
+            defaultValue={v.lease_term ?? ""}
             className={fieldClass}
           >
             <option value="" disabled>
@@ -160,6 +171,7 @@ export default function ListingForm() {
           rows={4}
           required
           maxLength={LONG_MAX}
+          defaultValue={v.description ?? ""}
           className={fieldClass}
         />
       </div>

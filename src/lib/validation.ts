@@ -22,6 +22,49 @@ export const LEASE_TERMS = ["6 months", "9 months", "12 months", "Other"] as con
 
 export type ValidationResult<T> = { error: string } | { ok: true; values: T };
 
+// Field names per form, used to collect raw input back for repopulation.
+export const REVIEW_FIELDS = [
+  "landlord_name",
+  "building_name",
+  "neighborhood",
+  "rating",
+  "review_text",
+] as const;
+
+export const SUBLET_FIELDS = [
+  "building_name",
+  "neighborhood",
+  "rent",
+  "available_from",
+  "available_until",
+  "description",
+  "contact_info",
+] as const;
+
+export const LISTING_FIELDS = [
+  "building_name",
+  "neighborhood",
+  "landlord_name",
+  "rent",
+  "bedrooms",
+  "bathrooms",
+  "lease_term",
+  "description",
+] as const;
+
+// Collect the exact (untrimmed) submitted values so a rejected form can be
+// repopulated with what the user typed.
+export function collectRaw(
+  formData: FormData,
+  names: readonly string[],
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const name of names) {
+    out[name] = String(formData.get(name) ?? "");
+  }
+  return out;
+}
+
 function clean(formData: FormData, name: string): string {
   return String(formData.get(name) ?? "").trim();
 }

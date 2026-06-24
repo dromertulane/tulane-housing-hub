@@ -6,6 +6,8 @@ import {
   NEIGHBORHOODS,
   SHORT_MAX,
   LONG_MAX,
+  REVIEW_FIELDS,
+  collectRaw,
   validateReview,
 } from "@/lib/validation";
 import type { ActionState } from "@/lib/auth/types";
@@ -19,13 +21,18 @@ const labelClass = "block text-sm font-medium text-zinc-700 dark:text-zinc-300";
 export default function ReviewForm() {
   const [state, formAction, pending] = useActionState(
     async (prev: ActionState, formData: FormData): Promise<ActionState> => {
-      // Client-side check using the same rules as the Server Action.
+      // Client-side check using the same rules as the Server Action; on
+      // failure, return the input so the form stays populated.
       const result = validateReview(formData);
-      if ("error" in result) return { error: result.error };
+      if ("error" in result) {
+        return { error: result.error, values: collectRaw(formData, REVIEW_FIELDS) };
+      }
       return postReview(prev, formData);
     },
     initialState,
   );
+
+  const v = state.values ?? {};
 
   return (
     <form
@@ -45,6 +52,7 @@ export default function ReviewForm() {
             type="text"
             required
             maxLength={SHORT_MAX}
+            defaultValue={v.landlord_name ?? ""}
             className={fieldClass}
           />
         </div>
@@ -58,6 +66,7 @@ export default function ReviewForm() {
             type="text"
             required
             maxLength={SHORT_MAX}
+            defaultValue={v.building_name ?? ""}
             className={fieldClass}
           />
         </div>
@@ -69,7 +78,7 @@ export default function ReviewForm() {
             id="neighborhood"
             name="neighborhood"
             required
-            defaultValue=""
+            defaultValue={v.neighborhood ?? ""}
             className={fieldClass}
           >
             <option value="" disabled>
@@ -90,7 +99,7 @@ export default function ReviewForm() {
             id="rating"
             name="rating"
             required
-            defaultValue=""
+            defaultValue={v.rating ?? ""}
             className={fieldClass}
           >
             <option value="" disabled>
@@ -114,6 +123,7 @@ export default function ReviewForm() {
           rows={4}
           required
           maxLength={LONG_MAX}
+          defaultValue={v.review_text ?? ""}
           className={fieldClass}
         />
       </div>

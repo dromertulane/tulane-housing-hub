@@ -7,6 +7,8 @@ import {
   SHORT_MAX,
   LONG_MAX,
   RENT_MAX,
+  SUBLET_FIELDS,
+  collectRaw,
   validateSublet,
 } from "@/lib/validation";
 import type { ActionState } from "@/lib/auth/types";
@@ -21,11 +23,15 @@ export default function SubletForm() {
   const [state, formAction, pending] = useActionState(
     async (prev: ActionState, formData: FormData): Promise<ActionState> => {
       const result = validateSublet(formData);
-      if ("error" in result) return { error: result.error };
+      if ("error" in result) {
+        return { error: result.error, values: collectRaw(formData, SUBLET_FIELDS) };
+      }
       return postSublet(prev, formData);
     },
     initialState,
   );
+
+  const v = state.values ?? {};
 
   return (
     <form
@@ -45,6 +51,7 @@ export default function SubletForm() {
             type="text"
             required
             maxLength={SHORT_MAX}
+            defaultValue={v.building_name ?? ""}
             className={fieldClass}
           />
         </div>
@@ -56,7 +63,7 @@ export default function SubletForm() {
             id="neighborhood"
             name="neighborhood"
             required
-            defaultValue=""
+            defaultValue={v.neighborhood ?? ""}
             className={fieldClass}
           >
             <option value="" disabled>
@@ -81,6 +88,7 @@ export default function SubletForm() {
             max={RENT_MAX}
             step={1}
             required
+            defaultValue={v.rent ?? ""}
             className={fieldClass}
           />
         </div>
@@ -94,6 +102,7 @@ export default function SubletForm() {
             name="available_from"
             type="date"
             required
+            defaultValue={v.available_from ?? ""}
             className={fieldClass}
           />
         </div>
@@ -106,6 +115,7 @@ export default function SubletForm() {
             name="available_until"
             type="date"
             required
+            defaultValue={v.available_until ?? ""}
             className={fieldClass}
           />
         </div>
@@ -120,6 +130,7 @@ export default function SubletForm() {
           rows={4}
           required
           maxLength={LONG_MAX}
+          defaultValue={v.description ?? ""}
           className={fieldClass}
         />
       </div>
@@ -133,6 +144,7 @@ export default function SubletForm() {
           type="text"
           required
           maxLength={SHORT_MAX}
+          defaultValue={v.contact_info ?? ""}
           className={fieldClass}
         />
       </div>

@@ -2,6 +2,13 @@
 
 import { useActionState } from "react";
 import { postSublet } from "./actions";
+import {
+  NEIGHBORHOODS,
+  SHORT_MAX,
+  LONG_MAX,
+  RENT_MAX,
+  validateSublet,
+} from "@/lib/validation";
 import type { ActionState } from "@/lib/auth/types";
 
 const initialState: ActionState = {};
@@ -11,11 +18,19 @@ const fieldClass =
 const labelClass = "block text-sm font-medium text-zinc-700 dark:text-zinc-300";
 
 export default function SubletForm() {
-  const [state, formAction, pending] = useActionState(postSublet, initialState);
+  const [state, formAction, pending] = useActionState(
+    async (prev: ActionState, formData: FormData): Promise<ActionState> => {
+      const result = validateSublet(formData);
+      if ("error" in result) return { error: result.error };
+      return postSublet(prev, formData);
+    },
+    initialState,
+  );
 
   return (
     <form
       action={formAction}
+      noValidate
       className="rounded-lg border border-zinc-200 p-6 dark:border-zinc-800"
     >
       <h2 className="text-xl font-semibold">Post a sublet</h2>
@@ -29,6 +44,7 @@ export default function SubletForm() {
             name="building_name"
             type="text"
             required
+            maxLength={SHORT_MAX}
             className={fieldClass}
           />
         </div>
@@ -36,13 +52,22 @@ export default function SubletForm() {
           <label className={labelClass} htmlFor="neighborhood">
             Neighborhood
           </label>
-          <input
+          <select
             id="neighborhood"
             name="neighborhood"
-            type="text"
             required
+            defaultValue=""
             className={fieldClass}
-          />
+          >
+            <option value="" disabled>
+              Select neighborhood
+            </option>
+            {NEIGHBORHOODS.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className={labelClass} htmlFor="rent">
@@ -52,7 +77,8 @@ export default function SubletForm() {
             id="rent"
             name="rent"
             type="number"
-            min={0}
+            min={1}
+            max={RENT_MAX}
             step={1}
             required
             className={fieldClass}
@@ -93,6 +119,7 @@ export default function SubletForm() {
           name="description"
           rows={4}
           required
+          maxLength={LONG_MAX}
           className={fieldClass}
         />
       </div>
@@ -105,6 +132,7 @@ export default function SubletForm() {
           name="contact_info"
           type="text"
           required
+          maxLength={SHORT_MAX}
           className={fieldClass}
         />
       </div>

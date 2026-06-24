@@ -2,6 +2,12 @@
 
 import { useActionState } from "react";
 import { postReview } from "./actions";
+import {
+  NEIGHBORHOODS,
+  SHORT_MAX,
+  LONG_MAX,
+  validateReview,
+} from "@/lib/validation";
 import type { ActionState } from "@/lib/auth/types";
 
 const initialState: ActionState = {};
@@ -11,11 +17,20 @@ const fieldClass =
 const labelClass = "block text-sm font-medium text-zinc-700 dark:text-zinc-300";
 
 export default function ReviewForm() {
-  const [state, formAction, pending] = useActionState(postReview, initialState);
+  const [state, formAction, pending] = useActionState(
+    async (prev: ActionState, formData: FormData): Promise<ActionState> => {
+      // Client-side check using the same rules as the Server Action.
+      const result = validateReview(formData);
+      if ("error" in result) return { error: result.error };
+      return postReview(prev, formData);
+    },
+    initialState,
+  );
 
   return (
     <form
       action={formAction}
+      noValidate
       className="rounded-lg border border-zinc-200 p-6 dark:border-zinc-800"
     >
       <h2 className="text-xl font-semibold">Post a review</h2>
@@ -29,6 +44,7 @@ export default function ReviewForm() {
             name="landlord_name"
             type="text"
             required
+            maxLength={SHORT_MAX}
             className={fieldClass}
           />
         </div>
@@ -41,6 +57,7 @@ export default function ReviewForm() {
             name="building_name"
             type="text"
             required
+            maxLength={SHORT_MAX}
             className={fieldClass}
           />
         </div>
@@ -48,13 +65,22 @@ export default function ReviewForm() {
           <label className={labelClass} htmlFor="neighborhood">
             Neighborhood
           </label>
-          <input
+          <select
             id="neighborhood"
             name="neighborhood"
-            type="text"
             required
+            defaultValue=""
             className={fieldClass}
-          />
+          >
+            <option value="" disabled>
+              Select neighborhood
+            </option>
+            {NEIGHBORHOODS.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className={labelClass} htmlFor="rating">
@@ -87,6 +113,7 @@ export default function ReviewForm() {
           name="review_text"
           rows={4}
           required
+          maxLength={LONG_MAX}
           className={fieldClass}
         />
       </div>

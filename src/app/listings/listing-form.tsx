@@ -2,6 +2,15 @@
 
 import { useActionState } from "react";
 import { postListing } from "./actions";
+import {
+  NEIGHBORHOODS,
+  LEASE_TERMS,
+  SHORT_MAX,
+  LONG_MAX,
+  RENT_MAX,
+  BEDROOMS_MAX,
+  validateListing,
+} from "@/lib/validation";
 import type { ActionState } from "@/lib/auth/types";
 
 const initialState: ActionState = {};
@@ -12,13 +21,18 @@ const labelClass = "block text-sm font-medium text-zinc-700 dark:text-zinc-300";
 
 export default function ListingForm() {
   const [state, formAction, pending] = useActionState(
-    postListing,
+    async (prev: ActionState, formData: FormData): Promise<ActionState> => {
+      const result = validateListing(formData);
+      if ("error" in result) return { error: result.error };
+      return postListing(prev, formData);
+    },
     initialState,
   );
 
   return (
     <form
       action={formAction}
+      noValidate
       className="rounded-lg border border-zinc-200 p-6 dark:border-zinc-800"
     >
       <h2 className="text-xl font-semibold">Post a listing</h2>
@@ -32,6 +46,7 @@ export default function ListingForm() {
             name="building_name"
             type="text"
             required
+            maxLength={SHORT_MAX}
             className={fieldClass}
           />
         </div>
@@ -39,13 +54,22 @@ export default function ListingForm() {
           <label className={labelClass} htmlFor="neighborhood">
             Neighborhood
           </label>
-          <input
+          <select
             id="neighborhood"
             name="neighborhood"
-            type="text"
             required
+            defaultValue=""
             className={fieldClass}
-          />
+          >
+            <option value="" disabled>
+              Select neighborhood
+            </option>
+            {NEIGHBORHOODS.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className={labelClass} htmlFor="landlord_name">
@@ -56,6 +80,7 @@ export default function ListingForm() {
             name="landlord_name"
             type="text"
             required
+            maxLength={SHORT_MAX}
             className={fieldClass}
           />
         </div>
@@ -67,7 +92,8 @@ export default function ListingForm() {
             id="rent"
             name="rent"
             type="number"
-            min={0}
+            min={1}
+            max={RENT_MAX}
             step={1}
             required
             className={fieldClass}
@@ -82,6 +108,7 @@ export default function ListingForm() {
             name="bedrooms"
             type="number"
             min={0}
+            max={BEDROOMS_MAX}
             step={1}
             required
             className={fieldClass}
@@ -95,7 +122,7 @@ export default function ListingForm() {
             id="bathrooms"
             name="bathrooms"
             type="number"
-            min={0}
+            min={1}
             step={0.5}
             required
             className={fieldClass}
@@ -105,14 +132,22 @@ export default function ListingForm() {
           <label className={labelClass} htmlFor="lease_term">
             Lease term
           </label>
-          <input
+          <select
             id="lease_term"
             name="lease_term"
-            type="text"
-            placeholder="e.g. 12 months"
             required
+            defaultValue=""
             className={fieldClass}
-          />
+          >
+            <option value="" disabled>
+              Select lease term
+            </option>
+            {LEASE_TERMS.map((term) => (
+              <option key={term} value={term}>
+                {term}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
       <div className="mt-4">
@@ -124,6 +159,7 @@ export default function ListingForm() {
           name="description"
           rows={4}
           required
+          maxLength={LONG_MAX}
           className={fieldClass}
         />
       </div>

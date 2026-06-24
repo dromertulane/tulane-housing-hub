@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { postReview } from "./actions";
+import PreservedSelect from "@/app/components/preserved-select";
 import {
   NEIGHBORHOODS,
   SHORT_MAX,
@@ -17,6 +18,12 @@ const initialState: ActionState = {};
 const fieldClass =
   "w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900";
 const labelClass = "block text-sm font-medium text-zinc-700 dark:text-zinc-300";
+
+const neighborhoodOptions = NEIGHBORHOODS.map((n) => ({ value: n, label: n }));
+const ratingOptions = [1, 2, 3, 4, 5].map((n) => ({
+  value: String(n),
+  label: `${n} ${n === 1 ? "star" : "stars"}`,
+}));
 
 export default function ReviewForm() {
   const [state, formAction, pending] = useActionState(
@@ -74,43 +81,25 @@ export default function ReviewForm() {
           <label className={labelClass} htmlFor="neighborhood">
             Neighborhood
           </label>
-          <select
+          <PreservedSelect
             id="neighborhood"
             name="neighborhood"
-            required
-            defaultValue={v.neighborhood ?? ""}
-            className={fieldClass}
-          >
-            <option value="" disabled>
-              Select neighborhood
-            </option>
-            {NEIGHBORHOODS.map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
+            placeholder="Select neighborhood"
+            preserved={v.neighborhood ?? ""}
+            options={neighborhoodOptions}
+          />
         </div>
         <div>
           <label className={labelClass} htmlFor="rating">
             Rating
           </label>
-          <select
+          <PreservedSelect
             id="rating"
             name="rating"
-            required
-            defaultValue={v.rating ?? ""}
-            className={fieldClass}
-          >
-            <option value="" disabled>
-              Select 1–5
-            </option>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <option key={n} value={n}>
-                {n} {n === 1 ? "star" : "stars"}
-              </option>
-            ))}
-          </select>
+            placeholder="Select 1–5"
+            preserved={v.rating ?? ""}
+            options={ratingOptions}
+          />
         </div>
       </div>
       <div className="mt-4">

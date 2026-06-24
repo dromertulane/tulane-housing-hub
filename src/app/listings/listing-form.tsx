@@ -68,7 +68,7 @@ export default function ListingForm() {
           <PreservedSelect
             id="neighborhood"
             name="neighborhood"
-            placeholder="Select neighborhood"
+            placeholder="Select a neighborhood…"
             preserved={v.neighborhood ?? ""}
             options={neighborhoodOptions}
           />
@@ -141,7 +141,7 @@ export default function ListingForm() {
           <PreservedSelect
             id="lease_term"
             name="lease_term"
-            placeholder="Select lease term"
+            placeholder="Select lease term…"
             preserved={v.lease_term ?? ""}
             options={leaseTermOptions}
           />

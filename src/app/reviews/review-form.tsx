@@ -84,7 +84,7 @@ export default function ReviewForm() {
           <PreservedSelect
             id="neighborhood"
             name="neighborhood"
-            placeholder="Select neighborhood"
+            placeholder="Select a neighborhood…"
             preserved={v.neighborhood ?? ""}
             options={neighborhoodOptions}
           />

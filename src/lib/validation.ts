@@ -110,7 +110,7 @@ export function validateReview(
   const textError =
     checkText(landlord_name, "Landlord name", SHORT_MAX) ??
     checkText(building_name, "Building name", SHORT_MAX) ??
-    checkText(neighborhood, "Neighborhood", SHORT_MAX) ??
+    (neighborhood ? null : "Please select a neighborhood.") ??
     checkText(review_text, "Review", LONG_MAX);
   if (textError) return { error: textError };
 
@@ -148,7 +148,7 @@ export function validateSublet(
 
   const textError =
     checkText(building_name, "Building name", SHORT_MAX) ??
-    checkText(neighborhood, "Neighborhood", SHORT_MAX) ??
+    (neighborhood ? null : "Please select a neighborhood.") ??
     checkText(description, "Description", LONG_MAX) ??
     checkText(contact_info, "Contact info", SHORT_MAX);
   if (textError) return { error: textError };
@@ -199,9 +199,9 @@ export function validateListing(
 
   const textError =
     checkText(building_name, "Building name", SHORT_MAX) ??
-    checkText(neighborhood, "Neighborhood", SHORT_MAX) ??
+    (neighborhood ? null : "Please select a neighborhood.") ??
     checkText(landlord_name, "Landlord name", SHORT_MAX) ??
-    checkText(lease_term, "Lease term", SHORT_MAX) ??
+    (lease_term ? null : "Please select a lease term.") ??
     checkText(description, "Description", LONG_MAX);
   if (textError) return { error: textError };
 

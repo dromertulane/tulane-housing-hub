@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
-
-// A controlled <select> that keeps the user's choice after a rejected submit.
-// Uncontrolled selects only honor `defaultValue` at mount, so React's
-// post-action form reset would revert them to the placeholder. Driving the
-// value from state (synced to `preserved`) makes the selection stick.
+// A <select> that keeps the user's choice after a rejected submit.
+//
+// React only applies a select's default selection at mount, and React 19's
+// automatic form reset (after a `useActionState` action) reverts an
+// uncontrolled select to that mount-time default. By keying the element on
+// `preserved`, the select remounts whenever the returned value changes, so the
+// new value becomes the default the reset restores — mirroring how the
+// uncontrolled text inputs preserve their values. When `preserved` is empty
+// (no selection), it defaults to the disabled placeholder, not a real option.
 export type SelectOption = { value: string; label: string };
 
 const fieldClass =
@@ -24,24 +27,13 @@ export default function PreservedSelect({
   placeholder: string;
   preserved: string;
 }) {
-  const [value, setValue] = useState(preserved);
-
-  // Re-sync when the action returns a new preserved value (e.g. after a
-  // rejected submit). Adjusting state during render is React's recommended
-  // alternative to a syncing effect.
-  const [lastPreserved, setLastPreserved] = useState(preserved);
-  if (preserved !== lastPreserved) {
-    setLastPreserved(preserved);
-    setValue(preserved);
-  }
-
   return (
     <select
+      key={preserved}
       id={id}
       name={name}
       required
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
+      defaultValue={preserved}
       className={fieldClass}
     >
       <option value="" disabled>
